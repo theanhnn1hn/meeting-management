@@ -19,14 +19,14 @@ define('UPLOAD_URL', BASE_URL . '/uploads/tai-lieu/');
 define('MAX_FILE_SIZE', 50 * 1024 * 1024); // 50MB
 define('ALLOWED_EXTENSIONS', ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar']);
 
-// Email config (PHPMailer - CHỈ cho phê duyệt/từ chối)
+// Email config
 define('SMTP_HOST', 'smtp.gmail.com');
 define('SMTP_PORT', 587);
 define('SMTP_USERNAME', 'your-email@gmail.com');
 define('SMTP_PASSWORD', 'your-app-password');
 define('SMTP_FROM_EMAIL', 'noreply@province.gov.vn');
 define('SMTP_FROM_NAME', 'Hệ thống Quản lý Kỳ họp');
-define('EMAIL_ENABLED', false); // Tắt email trong dev, bật trong production
+define('EMAIL_ENABLED', false);
 
 // Pagination
 define('ITEMS_PER_PAGE', 20);
