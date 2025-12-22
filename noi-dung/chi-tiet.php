@@ -651,11 +651,19 @@ function approveNoiDung() {
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Phê duyệt',
-        cancelButtonText: 'Hủy',
         confirmButtonColor: '#28a745'
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = 'phe-duyet.php?id=$noi_dung_id&action=approve';
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'phe-duyet.php';
+            form.innerHTML = `
+                <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
+                <input type="hidden" name="noi_dung_id" value="<?= $noi_dung_id ?>">
+                <input type="hidden" name="action" value="approve">
+            `;
+            document.body.appendChild(form);
+            form.submit();
         }
     });
 }
@@ -665,22 +673,26 @@ function rejectNoiDung() {
         title: 'Từ chối nội dung',
         input: 'textarea',
         inputLabel: 'Lý do từ chối',
-        inputPlaceholder: 'Nhập lý do từ chối...',
-        inputAttributes: {
-            'aria-label': 'Nhập lý do từ chối'
-        },
+        inputPlaceholder: 'Nhập lý do tại đây...',
         showCancelButton: true,
         confirmButtonText: 'Từ chối',
-        cancelButtonText: 'Hủy',
         confirmButtonColor: '#dc3545',
         inputValidator: (value) => {
-            if (!value) {
-                return 'Vui lòng nhập lý do từ chối';
-            }
+            if (!value) return 'Bạn phải nhập lý do từ chối!';
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = 'phe-duyet.php?id=$noi_dung_id&action=reject&reason=' + encodeURIComponent(result.value);
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'phe-duyet.php';
+            form.innerHTML = `
+                <input type="hidden" name="csrf_token" value="<?= generate_csrf_token() ?>">
+                <input type="hidden" name="noi_dung_id" value="<?= $noi_dung_id ?>">
+                <input type="hidden" name="action" value="reject">
+                <input type="hidden" name="ly_do" value="${result.value}">
+            `;
+            document.body.appendChild(form);
+            form.submit();
         }
     });
 }
