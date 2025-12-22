@@ -1,4 +1,12 @@
 <?php
+/**
+ * ĐĂNG KÝ NỘI DUNG KỲ HỌP - FIXED VERSION
+ * 
+ * BUG FIXED:
+ * - Lỗi 1: Biến $current_user chưa định nghĩa tại thời điểm xử lý POST
+ * - Giải pháp: Sử dụng $_SESSION['ho_ten'] thay vì $current_user['ho_ten']
+ */
+
 require_once __DIR__ . '/../auth/check_auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
@@ -94,17 +102,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 
+                // ✅ FIX: Sử dụng $_SESSION['ho_ten'] thay vì $current_user['ho_ten']
                 // Tạo thông báo cho người phê duyệt
                 create_notification(
                     $nguoi_phe_duyet_id,
                     "Nội dung mới chờ phê duyệt",
-                    "{$current_user['ho_ten']} vừa đăng ký nội dung: \"{$tieu_de}\"",
+                    "{$_SESSION['ho_ten']} vừa đăng ký nội dung: \"{$tieu_de}\"",
                     'dang_ky',
                     BASE_URL . '/noi-dung/chi-tiet.php?id=' . $noi_dung_id,
                     $noi_dung_id
                 );
                 
-                // Thông báo cho Trưởng/Phó phòng
+                // ✅ FIX: Thông báo cho Trưởng/Phó phòng - dùng $_SESSION['ho_ten']
                 if ($_SESSION['phong_ban_id']) {
                     $stmt = $pdo->prepare("
                         SELECT id FROM users 
@@ -120,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         notify_users(
                             $lanh_dao_phong,
                             "Nội dung mới từ phòng",
-                            "{$current_user['ho_ten']} vừa đăng ký nội dung: \"{$tieu_de}\"",
+                            "{$_SESSION['ho_ten']} vừa đăng ký nội dung: \"{$tieu_de}\"",
                             'cap_nhat',
                             BASE_URL . '/noi-dung/chi-tiet.php?id=' . $noi_dung_id,
                             $noi_dung_id
@@ -141,6 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Load $current_user sau khi xử lý POST
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -210,8 +220,8 @@ include __DIR__ . '/../includes/header.php';
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label">Cơ quan trình</label>
-                            <select name="co_quan_trinh_id" class="form-select">
+                            <label class="form-label">Cơ quan trình <span class="text-danger">*</span></label>
+                            <select name="co_quan_trinh_id" class="form-select" required>
                                 <option value="">-- Chọn cơ quan --</option>
                                 <?php foreach ($co_quan_list as $cq): ?>
                                     <option value="<?= $cq['id'] ?>" <?= ($_POST['co_quan_trinh_id'] ?? '') == $cq['id'] ? 'selected' : '' ?>>
@@ -284,7 +294,7 @@ include __DIR__ . '/../includes/header.php';
                         <li class="mb-2">Chọn kỳ họp bạn muốn đăng ký nội dung</li>
                         <li class="mb-2">Nhập tiêu đề rõ ràng, dễ hiểu</li>
                         <li class="mb-2">Mô tả tóm tắt nội dung chính</li>
-                        <li class="mb-2">Chọn cơ quan chủ trì soạn thảo (nếu có)</li>
+                        <li class="mb-2">Chọn cơ quan chủ trì soạn thảo (bắt buộc)</li>
                         <li class="mb-2">Chọn người phê duyệt (Chánh VP hoặc Phó CVP)</li>
                         <li class="mb-2">Có thể sử dụng template checklist có sẵn</li>
                         <li class="mb-2">Sau khi đăng ký, trạng thái sẽ là "Chờ duyệt"</li>
