@@ -32,7 +32,7 @@ try {
             $stmt = $pdo->prepare("
                 UPDATE thong_bao 
                 SET da_doc = 1, ngay_doc = NOW() 
-                WHERE nguoi_nhan_id = ? AND da_doc = 0
+                WHERE user_id = ? AND da_doc = 0
             ");
             $stmt->execute([$user_id]);
             
@@ -51,14 +51,14 @@ try {
             }
             
             // Check ownership
-            $stmt = $pdo->prepare("SELECT id FROM thong_bao WHERE id = ? AND nguoi_nhan_id = ?");
+            $stmt = $pdo->prepare("SELECT id FROM thong_bao WHERE id = ? AND user_id = ?");
             $stmt->execute([$id, $user_id]);
             
             if (!$stmt->fetch()) {
                 throw new Exception('Không có quyền');
             }
             
-            $stmt = $pdo->prepare("DELETE FROM thong_bao WHERE id = ? AND nguoi_nhan_id = ?");
+            $stmt = $pdo->prepare("DELETE FROM thong_bao WHERE id = ? AND user_id = ?");
             $stmt->execute([$id, $user_id]);
             
             echo json_encode(['success' => true, 'message' => 'Đã xóa']);
@@ -67,7 +67,7 @@ try {
         case 'delete_all_read':
             $stmt = $pdo->prepare("
                 DELETE FROM thong_bao 
-                WHERE nguoi_nhan_id = ? AND da_doc = 1
+                WHERE user_id = ? AND da_doc = 1
             ");
             $stmt->execute([$user_id]);
             

@@ -2,9 +2,10 @@
 /**
  * FIXED VERSION - Comment API with SQL Injection Protection
  * 
- * BUG FIXED:
+ * BUGS FIXED:
  * - SQL Injection risk: $loai không được validate trước INSERT
- * - Solution: Whitelist validation cho $loai
+ * - Wrong parameter order in create_notification()
+ * - Solution: Whitelist validation cho $loai, fix parameter order
  */
 
 session_start();
@@ -79,21 +80,23 @@ try {
                     'yeu_cau_sua' => 'Yêu cầu sửa'
                 ];
                 
+                // ✅ FIX: Correct parameter order
+                // create_notification($user_id, $tieu_de, $noi_dung, $loai, $lien_ket, $noi_dung_id)
                 create_notification(
-                    $nguoi_trinh_id,
-                    $loai,
-                    $loai_text[$loai] . ' mới',
-                    'Bạn có ' . strtolower($loai_text[$loai]) . ' mới: ' . mb_substr($noi_dung_comment, 0, 100),
-                    '../noi-dung/chi-tiet.php?id=' . $noi_dung_id,
-                    $user_id
+                    $nguoi_trinh_id,                                          // $user_id
+                    $loai_text[$loai] . ' mới',                              // $tieu_de
+                    'Bạn có ' . strtolower($loai_text[$loai]) . ' mới: ' . mb_substr($noi_dung_comment, 0, 100), // $noi_dung
+                    $loai,                                                    // $loai (enum)
+                    BASE_URL . '/noi-dung/chi-tiet.php?id=' . $noi_dung_id, // $lien_ket
+                    $noi_dung_id                                              // $noi_dung_id
                 );
             }
             
             // Log activity
             log_activity(
-                $user_id,
-                'add_comment',
                 'Thêm ' . $loai . ' cho nội dung #' . $noi_dung_id,
+                'comments',
+                $comment_id,
                 json_encode(['comment_id' => $comment_id, 'loai' => $loai])
             );
             
@@ -167,7 +170,7 @@ try {
                 throw new Exception('Comment không tồn tại');
             }
             
-            if ($comment_user_id != $user_id && !in_array($_SESSION['role'], ['chanh_van_phong', 'pho_chanh_van_phong'])) {
+            if ($comment_user_id != $user_id && !in_array($_SESSION['chuc_vu'] ?? '', ['chanh_vp', 'pho_cvp'])) {
                 throw new Exception('Không có quyền xóa');
             }
             

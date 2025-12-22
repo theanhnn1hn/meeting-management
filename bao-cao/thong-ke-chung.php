@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/functions.php';
 
 check_login();
-check_role(['chanh_van_phong', 'pho_chanh_van_phong', 'lanh_dao_tinh']);
+check_role(['chanh_vp', 'pho_cvp', 'lanh_dao_tinh']);
 
 $from_date = $_GET['from_date'] ?? date('Y-m-01');
 $to_date = $_GET['to_date'] ?? date('Y-m-d');
@@ -14,11 +14,11 @@ $stmt = $pdo->prepare("
     SELECT 
         (SELECT COUNT(*) FROM ky_hop WHERE ngay_hop BETWEEN ? AND ?) as tong_ky_hop,
         (SELECT COUNT(*) FROM noi_dung WHERE created_at BETWEEN ? AND ?) as tong_noi_dung,
-        (SELECT COUNT(*) FROM users WHERE active = 1) as tong_can_bo,
+        (SELECT COUNT(*) FROM users WHERE trang_thai = 1) as tong_can_bo,
         (SELECT COUNT(*) FROM phong_ban) as tong_phong_ban,
         (SELECT AVG(tien_do) FROM noi_dung WHERE created_at BETWEEN ? AND ?) as tien_do_chung,
-        (SELECT COUNT(*) FROM noi_dung WHERE trang_thai_duyet = 'lanh_dao_duyet' AND created_at BETWEEN ? AND ?) as da_duyet,
-        (SELECT COUNT(*) FROM noi_dung WHERE trang_thai_duyet = 'cho_duyet' AND created_at BETWEEN ? AND ?) as cho_duyet,
+        (SELECT COUNT(*) FROM noi_dung WHERE trang_thai = 'da_duyet' AND created_at BETWEEN ? AND ?) as da_duyet,
+        (SELECT COUNT(*) FROM noi_dung WHERE trang_thai = 'cho_duyet' AND created_at BETWEEN ? AND ?) as cho_duyet,
         (SELECT COUNT(*) FROM comments WHERE loai = 'doc_viec' AND created_at BETWEEN ? AND ?) as tong_doc_viec
 ");
 $params = [
@@ -35,11 +35,11 @@ $general_stats = $stmt->fetch();
 // Content by status
 $stmt = $pdo->prepare("
     SELECT 
-        trang_thai_duyet,
+        trang_thai,
         COUNT(*) as count
     FROM noi_dung
     WHERE created_at BETWEEN ? AND ?
-    GROUP BY trang_thai_duyet
+    GROUP BY trang_thai
 ");
 $stmt->execute([$from_date . ' 00:00:00', $to_date . ' 23:59:59']);
 $status_stats = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
@@ -60,10 +60,10 @@ $monthly_stats = $stmt->fetchAll();
 // Top phong ban
 $stmt = $pdo->prepare("
     SELECT 
-        pb.ten_phong_ban,
+        pb.ten_phong,
         COUNT(nd.id) as tong_noi_dung,
         AVG(nd.tien_do) as tien_do_tb,
-        SUM(CASE WHEN nd.trang_thai_duyet = 'lanh_dao_duyet' THEN 1 ELSE 0 END) as da_duyet
+        SUM(CASE WHEN nd.trang_thai = 'da_duyet' THEN 1 ELSE 0 END) as da_duyet
     FROM phong_ban pb
     LEFT JOIN users u ON pb.id = u.phong_ban_id
     LEFT JOIN noi_dung nd ON u.id = nd.nguoi_trinh_id 
@@ -80,10 +80,10 @@ $top_phong_ban = $stmt->fetchAll();
 $stmt = $pdo->prepare("
     SELECT 
         u.ho_ten,
-        pb.ten_phong_ban,
+        pb.ten_phong,
         COUNT(nd.id) as tong_noi_dung,
         AVG(nd.tien_do) as tien_do_tb,
-        SUM(CASE WHEN nd.trang_thai_duyet = 'lanh_dao_duyet' THEN 1 ELSE 0 END) as da_duyet
+        SUM(CASE WHEN nd.trang_thai = 'da_duyet' THEN 1 ELSE 0 END) as da_duyet
     FROM users u
     JOIN phong_ban pb ON u.phong_ban_id = pb.id
     LEFT JOIN noi_dung nd ON u.id = nd.nguoi_trinh_id 
@@ -300,7 +300,7 @@ include __DIR__ . '/../../includes/header.php';
                                                 <?php endif; ?>
                                             </td>
                                             <td><?php echo htmlspecialchars($user['ho_ten']); ?></td>
-                                            <td><small><?php echo htmlspecialchars($user['ten_phong_ban']); ?></small></td>
+                                            <td><small><?php echo htmlspecialchars($user['ten_phong']); ?></small></td>
                                             <td>
                                                 <div class="progress" style="height: 18px; min-width: 60px;">
                                                     <div class="progress-bar bg-success" style="width: <?php echo round($user['tien_do_tb'], 1); ?>%">
@@ -334,10 +334,10 @@ include __DIR__ . '/../../includes/header.php';
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div>
                                                 <i class="fas fa-circle text-primary" style="font-size: 8px;"></i>
-                                                <?php echo htmlspecialchars($activity['action']); ?>
+                                                <?php echo htmlspecialchars($activity['hanh_dong']); ?>
                                             </div>
                                             <small class="text-muted">
-                                                <?php echo time_elapsed_string($activity['created_at']); ?>
+                                                <?php echo time_ago($activity['created_at']); ?>
                                             </small>
                                         </div>
                                     </div>
@@ -359,16 +359,16 @@ $(document).ready(function() {
     new Chart(statusCtx, {
         type: 'pie',
         data: {
-            labels: ['Chờ duyệt', 'CVP duyệt', 'PCVP duyệt', 'LD duyệt', 'Từ chối'],
+            labels: ['Chờ duyệt', 'Đã duyệt', 'Từ chối', 'Đang xử lý', 'Hoàn thành'],
             datasets: [{
                 data: [
                     <?php echo $status_stats['cho_duyet'] ?? 0; ?>,
-                    <?php echo $status_stats['chanh_vp_duyet'] ?? 0; ?>,
-                    <?php echo $status_stats['pho_cvp_duyet'] ?? 0; ?>,
-                    <?php echo $status_stats['lanh_dao_duyet'] ?? 0; ?>,
-                    <?php echo $status_stats['tu_choi'] ?? 0; ?>
+                    <?php echo $status_stats['da_duyet'] ?? 0; ?>,
+                    <?php echo $status_stats['tu_choi'] ?? 0; ?>,
+                    <?php echo $status_stats['dang_xu_ly'] ?? 0; ?>,
+                    <?php echo $status_stats['hoan_thanh'] ?? 0; ?>
                 ],
-                backgroundColor: ['#ffc107', '#17a2b8', '#6610f2', '#28a745', '#dc3545']
+                backgroundColor: ['#ffc107', '#28a745', '#dc3545', '#17a2b8', '#6c757d']
             }]
         },
         options: {
@@ -411,7 +411,7 @@ $(document).ready(function() {
     new Chart(pbCtx, {
         type: 'bar',
         data: {
-            labels: [<?php echo implode(',', array_map(function($pb) { return "'" . addslashes($pb['ten_phong_ban']) . "'"; }, $top_phong_ban)); ?>],
+            labels: [<?php echo implode(',', array_map(function($pb) { return "'" . addslashes($pb['ten_phong']) . "'"; }, $top_phong_ban)); ?>],
             datasets: [{
                 label: 'Tiến độ TB (%)',
                 data: [<?php echo implode(',', array_map(function($pb) { return round($pb['tien_do_tb'], 1); }, $top_phong_ban)); ?>],

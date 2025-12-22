@@ -178,8 +178,9 @@ CREATE TABLE `comments` (
   `id` int NOT NULL AUTO_INCREMENT,
   `noi_dung_id` int NOT NULL,
   `user_id` int NOT NULL,
-  `noi_dung_comment` text NOT NULL,
+  `noi_dung` text NOT NULL,
   `loai` enum('gop_y','doc_viec','yeu_cau_sua') DEFAULT 'gop_y',
+  `trang_thai` enum('chua_xu_ly','dang_xu_ly','da_hoan_thanh') DEFAULT 'chua_xu_ly',
   `parent_id` int DEFAULT NULL COMMENT 'ID comment cha (reply)',
   `is_private` tinyint(1) DEFAULT 0 COMMENT '1=chỉ Lãnh đạo VP thấy',
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
@@ -194,7 +195,7 @@ CREATE TABLE `comments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 9. BẢNG THÔNG BÁO
+-- 9. BẢNG THÔNG BÁO (FIXED)
 -- =====================================================
 CREATE TABLE `thong_bao` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -204,6 +205,7 @@ CREATE TABLE `thong_bao` (
   `loai` enum('dang_ky','phe_duyet','tu_choi','comment','doc_viec','deadline_t7','deadline_t3','deadline_t1','qua_han','hoan_thanh','cap_nhat') NOT NULL,
   `lien_ket` varchar(500) DEFAULT NULL COMMENT 'URL liên quan',
   `da_doc` tinyint(1) DEFAULT 0,
+  `ngay_doc` datetime DEFAULT NULL COMMENT 'Ngày đọc thông báo',
   `noi_dung_id` int DEFAULT NULL COMMENT 'Liên kết đến nội dung',
   `created_at` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

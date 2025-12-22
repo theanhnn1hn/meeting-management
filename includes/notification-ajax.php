@@ -2,8 +2,10 @@
 /**
  * FIXED VERSION - Notification AJAX with CSRF Protection
  * 
- * BUG FIXED:
+ * BUGS FIXED:
  * - Missing CSRF protection for GET requests
+ * - Wrong column name: nguoi_nhan_id → user_id
+ * - Wrong function name: time_elapsed_string() → time_ago()
  * - Solution: Use POST for all state-changing operations, add CSRF token validation
  */
 
@@ -34,7 +36,7 @@ try {
                 $stmt = $pdo->prepare("
                     SELECT COUNT(*) 
                     FROM thong_bao 
-                    WHERE nguoi_nhan_id = ? AND da_doc = 0
+                    WHERE user_id = ? AND da_doc = 0
                 ");
                 $stmt->execute([$user_id]);
                 $count = $stmt->fetchColumn();
@@ -59,16 +61,16 @@ try {
                         da_doc,
                         created_at
                     FROM thong_bao
-                    WHERE nguoi_nhan_id = ?
+                    WHERE user_id = ?
                     ORDER BY created_at DESC
                     LIMIT ?
                 ");
                 $stmt->execute([$user_id, $limit]);
                 $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 
-                // Format timestamps
+                // Format timestamps using time_ago() function
                 foreach ($notifications as &$notif) {
-                    $notif['created_at'] = time_elapsed_string($notif['created_at']);
+                    $notif['created_at'] = time_ago($notif['created_at']);
                     $notif['da_doc'] = (bool)$notif['da_doc'];
                 }
                 
@@ -109,7 +111,7 @@ try {
                 // Verify ownership
                 $stmt = $pdo->prepare("
                     SELECT id FROM thong_bao 
-                    WHERE id = ? AND nguoi_nhan_id = ?
+                    WHERE id = ? AND user_id = ?
                 ");
                 $stmt->execute([$notification_id, $user_id]);
                 
@@ -121,7 +123,7 @@ try {
                 $stmt = $pdo->prepare("
                     UPDATE thong_bao 
                     SET da_doc = 1, ngay_doc = NOW() 
-                    WHERE id = ? AND nguoi_nhan_id = ?
+                    WHERE id = ? AND user_id = ?
                 ");
                 $stmt->execute([$notification_id, $user_id]);
                 
@@ -136,7 +138,7 @@ try {
                 $stmt = $pdo->prepare("
                     UPDATE thong_bao 
                     SET da_doc = 1, ngay_doc = NOW() 
-                    WHERE nguoi_nhan_id = ? AND da_doc = 0
+                    WHERE user_id = ? AND da_doc = 0
                 ");
                 $stmt->execute([$user_id]);
                 
@@ -159,7 +161,7 @@ try {
                 // Verify ownership before delete
                 $stmt = $pdo->prepare("
                     DELETE FROM thong_bao 
-                    WHERE id = ? AND nguoi_nhan_id = ?
+                    WHERE id = ? AND user_id = ?
                 ");
                 $stmt->execute([$notification_id, $user_id]);
                 
@@ -177,7 +179,7 @@ try {
                 // Delete all read notifications
                 $stmt = $pdo->prepare("
                     DELETE FROM thong_bao 
-                    WHERE nguoi_nhan_id = ? AND da_doc = 1
+                    WHERE user_id = ? AND da_doc = 1
                 ");
                 $stmt->execute([$user_id]);
                 

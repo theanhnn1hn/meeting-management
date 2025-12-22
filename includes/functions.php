@@ -203,6 +203,11 @@ function time_ago($datetime) {
     return format_datetime($datetime);
 }
 
+// ✅ FIX: Add alias for backward compatibility
+function time_elapsed_string($datetime) {
+    return time_ago($datetime);
+}
+
 // =====================================================
 // ACTIVITY LOG
 // =====================================================
@@ -316,6 +321,13 @@ function status_badge($status, $type = 'noi_dung') {
     return "<span class='badge bg-{$info['color']}'>{$info['label']}</span>";
 }
 
+// Helper function for progress bar color
+function get_tien_do_color($tien_do) {
+    if ($tien_do >= 80) return 'success';
+    if ($tien_do >= 50) return 'warning';
+    return 'danger';
+}
+
 // =====================================================
 // PERMISSION CHECK
 // =====================================================
@@ -325,6 +337,22 @@ function require_permission($permission) {
         $_SESSION['error'] = 'Bạn không có quyền truy cập chức năng này';
         header('Location: ' . BASE_URL . '/dashboard/');
         exit;
+    }
+}
+
+function has_permission($permission) {
+    // Simple permission check based on role
+    $chuc_vu = $_SESSION['chuc_vu'] ?? '';
+    
+    switch ($permission) {
+        case 'view_all':
+            return in_array($chuc_vu, ['chanh_vp', 'pho_cvp']);
+        case 'phe_duyet':
+            return in_array($chuc_vu, ['chanh_vp', 'pho_cvp']);
+        case 'manage_users':
+            return $chuc_vu === 'chanh_vp';
+        default:
+            return false;
     }
 }
 
@@ -348,5 +376,27 @@ function redirect($url, $message = null, $type = 'success') {
     }
     header("Location: $url");
     exit;
+}
+
+function require_role($allowed_roles) {
+    if (!is_array($allowed_roles)) {
+        $allowed_roles = [$allowed_roles];
+    }
+    
+    if (!in_array($_SESSION['chuc_vu'] ?? '', $allowed_roles)) {
+        redirect(BASE_URL . '/dashboard/', 'Bạn không có quyền truy cập', 'error');
+    }
+}
+
+function check_login() {
+    if (!isset($_SESSION['user_id'])) {
+        header('Location: ' . BASE_URL . '/auth/login.php');
+        exit;
+    }
+}
+
+function check_role($allowed_roles) {
+    check_login();
+    require_role($allowed_roles);
 }
 ?>
