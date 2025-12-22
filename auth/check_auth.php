@@ -25,19 +25,4 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 
 }
 
 $_SESSION['last_activity'] = time();
-
-// Helper function kiểm tra quyền truy cập
-function require_role($allowed_roles = []) {
-    if (!is_array($allowed_roles)) {
-        $allowed_roles = [$allowed_roles];
-    }
-    
-    $current_role = $_SESSION['chuc_vu'] ?? '';
-    
-    if (!in_array($current_role, $allowed_roles)) {
-        $_SESSION['error'] = 'Bạn không có quyền truy cập trang này';
-        header('Location: ' . BASE_URL . '/dashboard/');
-        exit;
-    }
-}
 ?>
