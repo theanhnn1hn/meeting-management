@@ -4,9 +4,9 @@
 // =====================================================
 
 $host = 'localhost';
-$dbname = 'meeting_management';
-$username = 'root';
-$password = '';
+$dbname = 'ghkrylxe_hopubnd';
+$username = 'ghkrylxe_hopubnd';
+$password = ']xi8G$0]0x#ij&p%';
 
 try {
     $pdo = new PDO(

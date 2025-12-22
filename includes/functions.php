@@ -146,10 +146,10 @@ function time_ago($datetime) {
     return format_date($datetime);
 }
 
-function get_current_user() {
+function get_auth_user() { // Đã đổi tên ở đây
     global $pdo;
     if (!isset($_SESSION['user_id'])) return null;
-    // FIXED: Không lấy cột password để bảo mật
+    
     $stmt = $pdo->prepare("
         SELECT u.id, u.username, u.ho_ten, u.email, u.chuc_vu, u.phong_ban_id, p.ten_phong 
         FROM users u 

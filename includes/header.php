@@ -4,7 +4,8 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$current_user = get_current_user();
+// Cập nhật tên hàm mới tại đây
+$current_user = get_auth_user(); 
 $unread_count = count_unread_notifications($_SESSION['user_id']);
 ?>
 <!DOCTYPE html>

@@ -1,0 +1,1 @@
+[22-Dec-2025 21:36:08 Asia/Ho_Chi_Minh] PHP Fatal error:  Cannot redeclare get_tien_do_color() (previously declared in /home/ghkrylxe/public_html/hopubnd/includes/functions.php:165) in /home/ghkrylxe/public_html/hopubnd/config/constants.php on line 76

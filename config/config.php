@@ -16,7 +16,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Base URL
-define('BASE_URL', 'http://localhost/meeting-management');
+define('BASE_URL', 'http://yagtts.com/hopubnd');
 
 // Upload config
 define('UPLOAD_PATH', __DIR__ . '/../uploads/tai-lieu/');

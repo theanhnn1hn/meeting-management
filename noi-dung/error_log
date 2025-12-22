@@ -1,0 +1,55 @@
+[22-Dec-2025 21:30:11 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:71
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 71
+[22-Dec-2025 21:31:17 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:71
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 71
+[22-Dec-2025 21:31:57 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:75
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 75
+[22-Dec-2025 21:33:05 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:75
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 75
+[22-Dec-2025 21:36:29 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:71
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 71
+[22-Dec-2025 21:36:41 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:71
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 71
+[22-Dec-2025 21:37:36 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:71
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 71
+[22-Dec-2025 21:37:36 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:71
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 71
+[22-Dec-2025 21:37:37 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:71
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 71
+[22-Dec-2025 21:38:13 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:71
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 71
+[22-Dec-2025 21:38:32 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:71
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 71
+[22-Dec-2025 21:40:28 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:74
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 74
+[22-Dec-2025 21:42:48 Asia/Ho_Chi_Minh] PHP Fatal error:  Cannot redeclare get_tien_do_color() (previously declared in /home/ghkrylxe/public_html/hopubnd/includes/functions.php:181) in /home/ghkrylxe/public_html/hopubnd/config/constants.php on line 76
+[22-Dec-2025 21:42:49 Asia/Ho_Chi_Minh] PHP Fatal error:  Cannot redeclare get_tien_do_color() (previously declared in /home/ghkrylxe/public_html/hopubnd/includes/functions.php:181) in /home/ghkrylxe/public_html/hopubnd/config/constants.php on line 76
+[22-Dec-2025 21:44:29 Asia/Ho_Chi_Minh] PHP Fatal error:  Cannot redeclare has_permission() (previously declared in /home/ghkrylxe/public_html/hopubnd/includes/functions.php:50) in /home/ghkrylxe/public_html/hopubnd/config/constants.php on line 99
+[22-Dec-2025 21:45:31 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Call to undefined function get_all_phong_ban() in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php:74
+Stack trace:
+#0 {main}
+  thrown in /home/ghkrylxe/public_html/hopubnd/noi-dung/danh-sach.php on line 74
