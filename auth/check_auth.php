@@ -1,12 +1,9 @@
 <?php
 // =====================================================
-// AUTHENTICATION MIDDLEWARE
+// AUTHENTICATION MIDDLEWARE - FIXED VERSION
 // =====================================================
 
-if (!isset($_SESSION)) {
-    session_start();
-}
-
+// Load config (đã có session_start inside)
 require_once __DIR__ . '/../config/config.php';
 
 // Kiểm tra đăng nhập

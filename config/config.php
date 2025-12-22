@@ -1,14 +1,19 @@
 <?php
 // =====================================================
-// SYSTEM CONFIGURATION
+// SYSTEM CONFIGURATION - FIXED VERSION
 // =====================================================
+
+// Ngăn lỗi "Headers already sent" khi redirect
+ob_start();
 
 // Timezone
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-// Session config
-ini_set('session.gc_maxlifetime', 3600 * 8); // 8 hours
-session_start();
+// Session config - Khởi tạo tập trung tại đây
+if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.gc_maxlifetime', 3600 * 8); // 8 hours
+    session_start();
+}
 
 // Base URL
 define('BASE_URL', 'http://localhost/meeting-management');
