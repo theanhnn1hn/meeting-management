@@ -1,16 +1,6 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-session_start();
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../includes/functions.php';
-
-check_login();
+require_once __DIR__ . '/../auth/check_auth.php';
+require_once __DIR__ . '/../includes/functions.php';
 require_role([ROLE_CHANH_VP, ROLE_PHO_CVP]);
 
 // Get filters
@@ -79,7 +69,7 @@ if ($ky_hop_id) {
         FROM noi_dung nd
         JOIN users u ON nd.nguoi_trinh_id = u.id
         JOIN phong_ban pb ON u.phong_ban_id = pb.id
-        LEFT JOIN co_quan cq ON pb.co_quan_id = cq.id
+        LEFT JOIN co_quan cq ON nd.co_quan_trinh_id = cq.id
         WHERE nd.ky_hop_id = ?
         ORDER BY nd.trang_thai, nd.tien_do DESC
     ");
@@ -89,7 +79,7 @@ if ($ky_hop_id) {
 
 // Export to Excel
 if ($export && $ky_hop_id) {
-    require_once __DIR__ . '/../../vendor/autoload.php';
+    require_once __DIR__ . '/../vendor/autoload.php';
     
     use PhpOffice\PhpSpreadsheet\Spreadsheet;
     use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -191,14 +181,14 @@ if ($export && $ky_hop_id) {
 }
 
 $page_title = "Báo cáo tiến độ kỳ họp";
-include __DIR__ . '/../../includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4><i class="fas fa-chart-line"></i> Báo cáo tiến độ kỳ họp</h4>
+                <h4><i class="bi bi-chart-line"></i> Báo cáo tiến độ kỳ họp</h4>
                 <?php if ($ky_hop_id): ?>
                     <a href="?ky_hop_id=<?php echo $ky_hop_id; ?>&export=excel" class="btn btn-success">
                         <i class="fas fa-file-excel"></i> Xuất Excel
@@ -239,7 +229,7 @@ include __DIR__ . '/../../includes/header.php';
                     <div class="col-md-3">
                         <div class="card bg-success text-white">
                             <div class="card-body">
-                                <h3><?php echo $stats['lanh_dao_duyet']; ?></h3>
+                                <h3><?= $stats['da_duyet'] ?></h3>
                                 <p class="mb-0">Đã duyệt</p>
                             </div>
                         </div>
@@ -306,49 +296,49 @@ include __DIR__ . '/../../includes/header.php';
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php 
+                                <?php
                                 $stt = 1;
-                                foreach ($noi_dung_list as $nd): 
+                                foreach ($noi_dung_list as $nd):
                                     $trang_thai_class = [
                                         'cho_duyet' => 'warning',
-                                        'chanh_vp_duyet' => 'info',
-                                        'pho_cvp_duyet' => 'info',
-                                        'lanh_dao_duyet' => 'success',
-                                        'tu_choi' => 'danger'
+                                        'da_duyet' => 'success',
+                                        'tu_choi' => 'danger',
+                                        'dang_xu_ly' => 'info',
+                                        'hoan_thanh' => 'primary'
                                     ];
                                     $trang_thai_text = [
                                         'cho_duyet' => 'Chờ duyệt',
-                                        'chanh_vp_duyet' => 'CVP duyệt',
-                                        'pho_cvp_duyet' => 'PCVP duyệt',
-                                        'lanh_dao_duyet' => 'LD duyệt',
-                                        'tu_choi' => 'Từ chối'
+                                        'da_duyet' => 'Đã duyệt',
+                                        'tu_choi' => 'Từ chối',
+                                        'dang_xu_ly' => 'Đang xử lý',
+                                        'hoan_thanh' => 'Hoàn thành'
                                     ];
-                                    
+
                                     $progress_class = $nd['tien_do'] >= 80 ? 'success' : ($nd['tien_do'] >= 50 ? 'warning' : 'danger');
                                 ?>
                                     <tr>
-                                        <td><?php echo $stt++; ?></td>
-                                        <td><?php echo htmlspecialchars($nd['ten_noi_dung']); ?></td>
-                                        <td><?php echo htmlspecialchars($nd['ten_phong_ban']); ?></td>
-                                        <td><?php echo htmlspecialchars($nd['nguoi_trinh']); ?></td>
+                                        <td><?= $stt++ ?></td>
+                                        <td><?= e($nd['tieu_de']) ?></td>
+                                        <td><?= e($nd['ten_phong']) ?></td>
+                                        <td><?= e($nd['nguoi_trinh']) ?></td>
                                         <td>
-                                            <span class="badge bg-<?php echo $trang_thai_class[$nd['trang_thai_duyet']] ?? 'secondary'; ?>">
-                                                <?php echo $trang_thai_text[$nd['trang_thai_duyet']] ?? $nd['trang_thai_duyet']; ?>
+                                            <span class="badge bg-<?= $trang_thai_class[$nd['trang_thai']] ?? 'secondary' ?>">
+                                                <?= $trang_thai_text[$nd['trang_thai']] ?? $nd['trang_thai'] ?>
                                             </span>
                                         </td>
                                         <td>
                                             <div class="progress" style="height: 20px;">
-                                                <div class="progress-bar bg-<?php echo $progress_class; ?>" 
-                                                     style="width: <?php echo $nd['tien_do']; ?>%">
-                                                    <?php echo $nd['tien_do']; ?>%
+                                                <div class="progress-bar bg-<?= $progress_class ?>"
+                                                     style="width: <?= $nd['tien_do'] ?>%">
+                                                    <?= $nd['tien_do'] ?>%
                                                 </div>
                                             </div>
                                         </td>
-                                        <td><?php echo $nd['deadline'] ? date('d/m/Y', strtotime($nd['deadline'])) : ''; ?></td>
+                                        <td><?= $nd['deadline'] ? date('d/m/Y', strtotime($nd['deadline'])) : '' ?></td>
                                         <td>
-                                            <a href="../noi-dung/chi-tiet.php?id=<?php echo $nd['id']; ?>" 
+                                            <a href="<?= BASE_URL ?>/noi-dung/chi-tiet.php?id=<?= $nd['id'] ?>"
                                                class="btn btn-sm btn-info" target="_blank">
-                                                <i class="fas fa-eye"></i>
+                                                <i class="bi bi-eye"></i>
                                             </a>
                                         </td>
                                     </tr>
@@ -369,29 +359,31 @@ include __DIR__ . '/../../includes/header.php';
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
 $(document).ready(function() {
+    <?php if (!empty($noi_dung_list)): ?>
     $('#detailsTable').DataTable({
         language: {
             url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/vi.json'
         },
         order: [[5, 'asc']]
     });
-    
+    <?php endif; ?>
+
     <?php if ($ky_hop_id && $stats): ?>
     // Status Chart
     const statusCtx = document.getElementById('statusChart').getContext('2d');
     new Chart(statusCtx, {
         type: 'doughnut',
         data: {
-            labels: ['Đã duyệt', 'Chờ duyệt', 'CVP duyệt', 'PCVP duyệt', 'Từ chối'],
+            labels: ['Đã duyệt', 'Chờ duyệt', 'Từ chối', 'Đang xử lý', 'Hoàn thành'],
             datasets: [{
                 data: [
-                    <?php echo $stats['lanh_dao_duyet']; ?>,
-                    <?php echo $stats['cho_duyet']; ?>,
-                    <?php echo $stats['chanh_vp_duyet']; ?>,
-                    <?php echo $stats['pho_cvp_duyet']; ?>,
-                    <?php echo $stats['tu_choi']; ?>
+                    <?= $stats['da_duyet'] ?>,
+                    <?= $stats['cho_duyet'] ?>,
+                    <?= $stats['tu_choi'] ?>,
+                    <?= $stats['tong_noi_dung'] - $stats['da_duyet'] - $stats['cho_duyet'] - $stats['tu_choi'] - $stats['hoan_thanh'] ?>,
+                    <?= $stats['hoan_thanh'] ?>
                 ],
-                backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#6610f2', '#dc3545']
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#17a2b8', '#007bff']
             }]
         },
         options: {
@@ -403,16 +395,16 @@ $(document).ready(function() {
             }
         }
     });
-    
+
     // Progress Chart
     const progressCtx = document.getElementById('progressChart').getContext('2d');
     new Chart(progressCtx, {
         type: 'bar',
         data: {
-            labels: [<?php echo implode(',', array_map(function($pb) { return "'" . addslashes($pb['ten_phong_ban']) . "'"; }, $phong_ban_stats)); ?>],
+            labels: [<?= implode(',', array_map(function($pb) { return "'" . addslashes($pb['ten_phong']) . "'"; }, $phong_ban_stats)) ?>],
             datasets: [{
                 label: 'Tiến độ TB (%)',
-                data: [<?php echo implode(',', array_map(function($pb) { return round($pb['tien_do_tb'], 1); }, $phong_ban_stats)); ?>],
+                data: [<?= implode(',', array_map(function($pb) { return round($pb['tien_do_tb'], 1); }, $phong_ban_stats)) ?>],
                 backgroundColor: '#007bff'
             }]
         },
@@ -435,4 +427,4 @@ $(document).ready(function() {
 });
 </script>
 
-<?php include __DIR__ . '/../../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

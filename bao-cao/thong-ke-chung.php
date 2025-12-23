@@ -1,9 +1,6 @@
 <?php
-session_start();
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../includes/functions.php';
-
-check_login();
+require_once __DIR__ . '/../auth/check_auth.php';
+require_once __DIR__ . '/../includes/functions.php';
 require_role([ROLE_CHANH_VP, ROLE_PHO_CVP]);
 
 $from_date = $_GET['from_date'] ?? date('Y-m-01');
