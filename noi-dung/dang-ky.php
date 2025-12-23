@@ -2,19 +2,25 @@
 require_once __DIR__ . '/../auth/check_auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-require_role([ROLE_CHUYEN_VIEN]);
+require_role([ROLE_CHUYEN_VIEN, ROLE_TRUONG_PHONG, ROLE_PHO_PHONG]);
 
 $page_title = 'Đăng ký nội dung kỳ họp';
 $error = '';
 
 // Lấy danh sách kỳ họp đang mở đăng ký
 $stmt = $pdo->query("
-    SELECT * FROM ky_hop 
+    SELECT * FROM ky_hop
     WHERE trang_thai IN ('du_thao', 'dang_xu_ly', 'sap_dien_ra')
     AND (deadline_dang_ky IS NULL OR deadline_dang_ky >= CURDATE())
     ORDER BY ngay_hop ASC
 ");
 $ky_hop_list = $stmt->fetchAll();
+
+// Kiểm tra empty state
+$has_ky_hop = !empty($ky_hop_list);
+if (!$has_ky_hop) {
+    $error = 'Hiện tại không có kỳ họp nào đang mở đăng ký nội dung.';
+}
 
 $co_quan_list = $pdo->query("SELECT * FROM co_quan WHERE trang_thai = 1 ORDER BY thu_tu, ten_co_quan")->fetchAll();
 
@@ -110,10 +116,17 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<?php if ($error): ?>
+<?php if ($error && !$has_ky_hop): ?>
+    <div class="alert alert-warning">
+        <i class="bi bi-info-circle"></i> <?= e($error) ?>
+        <hr>
+        <p class="mb-0">Vui lòng chờ khi có kỳ họp mới được tạo hoặc liên hệ Chánh Văn phòng để biết thêm chi tiết.</p>
+    </div>
+<?php elseif ($error): ?>
     <div class="alert alert-danger alert-dismissible fade show"><?= e($error) ?><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
 <?php endif; ?>
 
+<?php if ($has_ky_hop): ?>
 <div class="card">
     <div class="card-body">
         <form method="POST">
@@ -123,7 +136,12 @@ include __DIR__ . '/../includes/header.php';
                 <select name="ky_hop_id" class="form-select" required>
                     <option value="">-- Chọn kỳ họp --</option>
                     <?php foreach ($ky_hop_list as $kh): ?>
-                        <option value="<?= $kh['id'] ?>"><?= e($kh['ten_ky_hop']) ?></option>
+                        <option value="<?= $kh['id'] ?>">
+                            <?= e($kh['so_ky_hop']) ?> - <?= e($kh['ten_ky_hop']) ?>
+                            <?php if ($kh['deadline_dang_ky']): ?>
+                                (Hạn đăng ký: <?= format_date($kh['deadline_dang_ky']) ?>)
+                            <?php endif; ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -148,8 +166,14 @@ include __DIR__ . '/../includes/header.php';
                     <?php endforeach; ?>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary">Đăng ký</button>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Đăng ký
+            </button>
+            <a href="danh-sach.php" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
         </form>
     </div>
 </div>
+<?php endif; ?>
 <?php include __DIR__ . '/../includes/footer.php'; ?>

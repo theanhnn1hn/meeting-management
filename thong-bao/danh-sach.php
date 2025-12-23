@@ -18,7 +18,7 @@ $loai_filter = $_GET['loai'] ?? '';
 $trang_thai = isset($_GET['da_doc']) ? (int)$_GET['da_doc'] : -1;
 
 // Build query
-$where = ["nguoi_nhan_id = ?"];
+$where = ["user_id = ?"];
 $params = [$user_id];
 
 if ($loai_filter) {
@@ -41,9 +41,8 @@ $total_pages = ceil($total / $per_page);
 
 // Get notifications
 $stmt = $pdo->prepare("
-    SELECT tb.*, u.ho_ten as nguoi_gui_ten
+    SELECT tb.*
     FROM thong_bao tb
-    LEFT JOIN users u ON tb.nguoi_gui_id = u.id
     WHERE $where_sql
     ORDER BY tb.created_at DESC
     LIMIT ? OFFSET ?
@@ -54,7 +53,7 @@ $stmt->execute($params);
 $notifications = $stmt->fetchAll();
 
 // Count unread
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM thong_bao WHERE nguoi_nhan_id = ? AND da_doc = 0");
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM thong_bao WHERE user_id = ? AND da_doc = 0");
 $stmt->execute([$user_id]);
 $unread_count = $stmt->fetchColumn();
 
@@ -157,18 +156,12 @@ include __DIR__ . '/../../includes/header.php';
                                                 
                                                 <small class="text-muted ms-2">
                                                     <i class="far fa-clock"></i>
-                                                    <?php echo time_elapsed_string($notif['created_at']); ?>
+                                                    <?php echo time_ago($notif['created_at']); ?>
                                                 </small>
                                             </div>
                                             
                                             <h6 class="mb-1"><?php echo htmlspecialchars($notif['tieu_de']); ?></h6>
                                             <p class="mb-1 text-muted small"><?php echo htmlspecialchars(mb_substr($notif['noi_dung'], 0, 150)); ?>...</p>
-                                            
-                                            <?php if ($notif['nguoi_gui_ten']): ?>
-                                                <small class="text-muted">
-                                                    <i class="fas fa-user"></i> <?php echo htmlspecialchars($notif['nguoi_gui_ten']); ?>
-                                                </small>
-                                            <?php endif; ?>
                                         </div>
                                         
                                         <div class="ms-3">

@@ -91,7 +91,7 @@ $GLOBALS['PERMISSIONS'] = [
     'doc_viec_phong' => [ROLE_TRUONG_PHONG, ROLE_PHO_PHONG],
     'view_all' => [ROLE_CHANH_VP, ROLE_PHO_CVP],
     'view_phong' => [ROLE_TRUONG_PHONG, ROLE_PHO_PHONG],
-    'dang_ky_noi_dung' => [ROLE_CHUYEN_VIEN]
+    'dang_ky_noi_dung' => [ROLE_CHUYEN_VIEN, ROLE_TRUONG_PHONG, ROLE_PHO_PHONG]
 ];
 
 // Helper function kiểm tra quyền

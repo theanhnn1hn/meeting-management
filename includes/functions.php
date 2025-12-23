@@ -149,15 +149,32 @@ function time_ago($datetime) {
 function get_auth_user() { // Đã đổi tên ở đây
     global $pdo;
     if (!isset($_SESSION['user_id'])) return null;
-    
+
     $stmt = $pdo->prepare("
-        SELECT u.id, u.username, u.ho_ten, u.email, u.chuc_vu, u.phong_ban_id, p.ten_phong 
-        FROM users u 
-        LEFT JOIN phong_ban p ON u.phong_ban_id = p.id 
+        SELECT u.id, u.username, u.ho_ten, u.email, u.chuc_vu, u.phong_ban_id, u.dien_thoai, u.last_login, u.created_at, p.ten_phong
+        FROM users u
+        LEFT JOIN phong_ban p ON u.phong_ban_id = p.id
         WHERE u.id = ?
     ");
     $stmt->execute([$_SESSION['user_id']]);
     return $stmt->fetch();
+}
+
+function get_cong_viec_uu_tien($user_id) {
+    global $pdo;
+    $stmt = $pdo->prepare("
+        SELECT nd.*, kh.ten_ky_hop, kh.deadline_hoan_thien,
+               DATEDIFF(kh.deadline_hoan_thien, CURDATE()) as days_left
+        FROM noi_dung nd
+        JOIN ky_hop kh ON nd.ky_hop_id = kh.id
+        WHERE nd.nguoi_trinh_id = ?
+        AND nd.trang_thai IN ('da_duyet', 'dang_xu_ly')
+        AND kh.deadline_hoan_thien >= CURDATE()
+        ORDER BY kh.deadline_hoan_thien ASC
+        LIMIT 20
+    ");
+    $stmt->execute([$user_id]);
+    return $stmt->fetchAll();
 }
 
 function get_users_by_chuc_vu($chuc_vu) {

@@ -11,7 +11,7 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/functions.php';
 
 check_login();
-check_role(['chanh_van_phong', 'pho_chanh_van_phong', 'lanh_dao_tinh']);
+require_role([ROLE_CHANH_VP, ROLE_PHO_CVP]);
 
 // Get filters
 $ky_hop_id = isset($_GET['ky_hop_id']) ? (int)$_GET['ky_hop_id'] : 0;
@@ -38,51 +38,50 @@ if ($ky_hop_id) {
     
     // Get statistics
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             COUNT(*) as tong_noi_dung,
-            SUM(CASE WHEN trang_thai_duyet = 'cho_duyet' THEN 1 ELSE 0 END) as cho_duyet,
-            SUM(CASE WHEN trang_thai_duyet = 'chanh_vp_duyet' THEN 1 ELSE 0 END) as chanh_vp_duyet,
-            SUM(CASE WHEN trang_thai_duyet = 'pho_cvp_duyet' THEN 1 ELSE 0 END) as pho_cvp_duyet,
-            SUM(CASE WHEN trang_thai_duyet = 'lanh_dao_duyet' THEN 1 ELSE 0 END) as lanh_dao_duyet,
-            SUM(CASE WHEN trang_thai_duyet = 'tu_choi' THEN 1 ELSE 0 END) as tu_choi,
+            SUM(CASE WHEN trang_thai = 'cho_duyet' THEN 1 ELSE 0 END) as cho_duyet,
+            SUM(CASE WHEN trang_thai = 'da_duyet' THEN 1 ELSE 0 END) as da_duyet,
+            SUM(CASE WHEN trang_thai = 'tu_choi' THEN 1 ELSE 0 END) as tu_choi,
+            SUM(CASE WHEN trang_thai = 'hoan_thanh' THEN 1 ELSE 0 END) as hoan_thanh,
             AVG(tien_do) as tien_do_trung_binh
         FROM noi_dung
         WHERE ky_hop_id = ?
     ");
     $stmt->execute([$ky_hop_id]);
     $stats = $stmt->fetch();
-    
+
     // Get progress by phong ban
     $stmt = $pdo->prepare("
-        SELECT 
-            pb.ten_phong_ban,
+        SELECT
+            pb.ten_phong,
             COUNT(nd.id) as tong_noi_dung,
             AVG(nd.tien_do) as tien_do_tb,
-            SUM(CASE WHEN nd.trang_thai_duyet = 'lanh_dao_duyet' THEN 1 ELSE 0 END) as da_duyet,
-            SUM(CASE WHEN nd.trang_thai_duyet = 'tu_choi' THEN 1 ELSE 0 END) as tu_choi
+            SUM(CASE WHEN nd.trang_thai = 'da_duyet' THEN 1 ELSE 0 END) as da_duyet,
+            SUM(CASE WHEN nd.trang_thai = 'tu_choi' THEN 1 ELSE 0 END) as tu_choi
         FROM phong_ban pb
         LEFT JOIN users u ON pb.id = u.phong_ban_id
         LEFT JOIN noi_dung nd ON u.id = nd.nguoi_trinh_id AND nd.ky_hop_id = ?
-        GROUP BY pb.id, pb.ten_phong_ban
+        GROUP BY pb.id, pb.ten_phong
         HAVING tong_noi_dung > 0
         ORDER BY tien_do_tb DESC
     ");
     $stmt->execute([$ky_hop_id]);
     $phong_ban_stats = $stmt->fetchAll();
-    
+
     // Get content details
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             nd.*,
             u.ho_ten as nguoi_trinh,
-            pb.ten_phong_ban,
+            pb.ten_phong,
             cq.ten_co_quan
         FROM noi_dung nd
         JOIN users u ON nd.nguoi_trinh_id = u.id
         JOIN phong_ban pb ON u.phong_ban_id = pb.id
         LEFT JOIN co_quan cq ON pb.co_quan_id = cq.id
         WHERE nd.ky_hop_id = ?
-        ORDER BY nd.trang_thai_duyet, nd.tien_do DESC
+        ORDER BY nd.trang_thai, nd.tien_do DESC
     ");
     $stmt->execute([$ky_hop_id]);
     $noi_dung_list = $stmt->fetchAll();
@@ -126,7 +125,7 @@ if ($export && $ky_hop_id) {
     $row++;
     $sheet->setCellValue('A' . $row, 'Chờ duyệt: ' . $stats['cho_duyet']);
     $row++;
-    $sheet->setCellValue('A' . $row, 'Đã duyệt: ' . $stats['lanh_dao_duyet']);
+    $sheet->setCellValue('A' . $row, 'Đã duyệt: ' . $stats['da_duyet']);
     $row++;
     $sheet->setCellValue('A' . $row, 'Từ chối: ' . $stats['tu_choi']);
     $row++;
@@ -154,21 +153,21 @@ if ($export && $ky_hop_id) {
     foreach ($noi_dung_list as $nd) {
         $trang_thai_text = [
             'cho_duyet' => 'Chờ duyệt',
-            'chanh_vp_duyet' => 'CVP đã duyệt',
-            'pho_cvp_duyet' => 'PCVP đã duyệt',
-            'lanh_dao_duyet' => 'Lãnh đạo đã duyệt',
-            'tu_choi' => 'Từ chối'
+            'da_duyet' => 'Đã duyệt',
+            'tu_choi' => 'Từ chối',
+            'dang_xu_ly' => 'Đang xử lý',
+            'hoan_thanh' => 'Hoàn thành'
         ];
-        
+
         $sheet->setCellValue('A' . $row, $stt++);
-        $sheet->setCellValue('B' . $row, $nd['ten_noi_dung']);
-        $sheet->setCellValue('C' . $row, $nd['ten_phong_ban']);
+        $sheet->setCellValue('B' . $row, $nd['tieu_de']);
+        $sheet->setCellValue('C' . $row, $nd['ten_phong']);
         $sheet->setCellValue('D' . $row, $nd['nguoi_trinh']);
-        $sheet->setCellValue('E' . $row, $trang_thai_text[$nd['trang_thai_duyet']] ?? $nd['trang_thai_duyet']);
+        $sheet->setCellValue('E' . $row, $trang_thai_text[$nd['trang_thai']] ?? $nd['trang_thai']);
         $sheet->setCellValue('F' . $row, $nd['tien_do'] . '%');
         $sheet->setCellValue('G' . $row, $nd['deadline'] ? date('d/m/Y', strtotime($nd['deadline'])) : '');
         $sheet->setCellValue('H' . $row, $nd['ghi_chu']);
-        
+
         $row++;
     }
     
