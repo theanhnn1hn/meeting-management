@@ -239,6 +239,7 @@ include __DIR__ . '/../includes/header.php';
 $extra_js = <<<JS
 <script>
 $(document).ready(function() {
+    <?php if (!empty($noi_dung_list)): ?>
     $('#noiDungTable').DataTable({
         order: [[0, 'asc']],
         pageLength: 20,
@@ -257,6 +258,7 @@ $(document).ready(function() {
             }
         ]
     });
+    <?php endif; ?>
 });
 </script>
 JS;
