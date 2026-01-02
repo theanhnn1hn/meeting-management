@@ -1,10 +1,7 @@
 <?php
-session_start();
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../includes/functions.php';
-
-check_login();
-check_role(['chanh_van_phong', 'pho_chanh_van_phong', 'lanh_dao_tinh']);
+require_once __DIR__ . '/../auth/check_auth.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_role([ROLE_CHANH_VP, ROLE_PHO_CVP]);
 
 $phong_ban_id = isset($_GET['phong_ban_id']) ? (int)$_GET['phong_ban_id'] : 0;
 $from_date = $_GET['from_date'] ?? date('Y-m-01');
@@ -12,7 +9,7 @@ $to_date = $_GET['to_date'] ?? date('Y-m-d');
 $export = isset($_GET['export']) && $_GET['export'] == 'excel';
 
 // Get phong ban list
-$stmt = $pdo->query("SELECT id, ten_phong_ban FROM phong_ban ORDER BY ten_phong_ban");
+$stmt = $pdo->query("SELECT id, ten_phong FROM phong_ban ORDER BY ten_phong");
 $phong_ban_list = $stmt->fetchAll();
 
 if ($phong_ban_id) {
@@ -22,29 +19,29 @@ if ($phong_ban_id) {
     
     // Stats
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             COUNT(DISTINCT nd.id) as tong_noi_dung,
             AVG(nd.tien_do) as tien_do_tb,
-            SUM(CASE WHEN nd.trang_thai_duyet = 'lanh_dao_duyet' THEN 1 ELSE 0 END) as da_duyet,
-            SUM(CASE WHEN nd.trang_thai_duyet = 'tu_choi' THEN 1 ELSE 0 END) as tu_choi,
+            SUM(CASE WHEN nd.trang_thai = 'da_duyet' THEN 1 ELSE 0 END) as da_duyet,
+            SUM(CASE WHEN nd.trang_thai = 'tu_choi' THEN 1 ELSE 0 END) as tu_choi,
             COUNT(DISTINCT u.id) as so_can_bo
         FROM users u
-        LEFT JOIN noi_dung nd ON u.id = nd.nguoi_trinh_id 
+        LEFT JOIN noi_dung nd ON u.id = nd.nguoi_trinh_id
             AND nd.created_at BETWEEN ? AND ?
         WHERE u.phong_ban_id = ?
     ");
     $stmt->execute([$from_date . ' 00:00:00', $to_date . ' 23:59:59', $phong_ban_id]);
     $stats = $stmt->fetch();
-    
+
     // By user
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             u.id, u.ho_ten, u.email,
             COUNT(nd.id) as tong_noi_dung,
             AVG(nd.tien_do) as tien_do_tb,
-            SUM(CASE WHEN nd.trang_thai_duyet = 'lanh_dao_duyet' THEN 1 ELSE 0 END) as da_duyet
+            SUM(CASE WHEN nd.trang_thai = 'da_duyet' THEN 1 ELSE 0 END) as da_duyet
         FROM users u
-        LEFT JOIN noi_dung nd ON u.id = nd.nguoi_trinh_id 
+        LEFT JOIN noi_dung nd ON u.id = nd.nguoi_trinh_id
             AND nd.created_at BETWEEN ? AND ?
         WHERE u.phong_ban_id = ?
         GROUP BY u.id
@@ -86,7 +83,7 @@ if ($export && $phong_ban_id) {
     $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
     $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
     
-    $sheet->setCellValue('A2', 'Phòng ban: ' . $phong_ban['ten_phong_ban']);
+    $sheet->setCellValue('A2', 'Phòng ban: ' . $phong_ban['ten_phong']);
     $sheet->mergeCells('A2:G2');
     
     $sheet->setCellValue('A3', 'Từ ngày ' . date('d/m/Y', strtotime($from_date)) . ' đến ' . date('d/m/Y', strtotime($to_date)));
@@ -154,7 +151,7 @@ include __DIR__ . '/../../includes/header.php';
                                 <option value="">-- Chọn phòng ban --</option>
                                 <?php foreach ($phong_ban_list as $pb): ?>
                                     <option value="<?php echo $pb['id']; ?>" <?php echo $pb['id'] == $phong_ban_id ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($pb['ten_phong_ban']); ?>
+                                        <?php echo htmlspecialchars($pb['ten_phong']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -292,11 +289,11 @@ include __DIR__ . '/../../includes/header.php';
                                     <tr>
                                         <td><?php echo $stt++; ?></td>
                                         <td><?php echo htmlspecialchars($nd['ten_ky_hop']); ?></td>
-                                        <td><?php echo htmlspecialchars($nd['ten_noi_dung']); ?></td>
+                                        <td><?php echo htmlspecialchars($nd['tieu_de']); ?></td>
                                         <td><?php echo htmlspecialchars($nd['nguoi_trinh']); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php echo $trang_thai_class[$nd['trang_thai_duyet']] ?? 'secondary'; ?>">
-                                                <?php echo $nd['trang_thai_duyet']; ?>
+                                            <span class="badge bg-<?php echo $trang_thai_class[$nd['trang_thai']] ?? 'secondary'; ?>">
+                                                <?php echo $nd['trang_thai']; ?>
                                             </span>
                                         </td>
                                         <td><?php echo $nd['tien_do']; ?>%</td>

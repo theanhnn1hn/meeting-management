@@ -372,11 +372,17 @@ if ($days !== null && $noi_dung['tien_do'] < 100):
                                 <?php endif; ?>
                             </div>
                             <div>
-                                <a href="<?= UPLOAD_URL . $file['duong_dan'] ?>" 
-                                   class="btn btn-sm btn-outline-primary" 
+                                <a href="<?= UPLOAD_URL . $file['duong_dan'] ?>"
+                                   class="btn btn-sm btn-outline-primary me-1"
                                    download="<?= e($file['ten_file']) ?>">
                                     <i class="bi bi-download"></i>
                                 </a>
+                                <?php if ($is_owner || $file['uploaded_by'] == $_SESSION['user_id'] || has_permission('phe_duyet')): ?>
+                                    <button onclick="deleteTaiLieu(<?= $file['id'] ?>, '<?= e($file['ten_file']) ?>')"
+                                            class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -850,6 +856,41 @@ function deleteChecklist(id) {
                 } else {
                     toastr.error(data.message);
                 }
+            });
+        }
+    });
+}
+
+// Xóa tài liệu
+function deleteTaiLieu(id, filename) {
+    Swal.fire({
+        title: 'Xác nhận xóa tài liệu',
+        text: 'Bạn có chắc muốn xóa tài liệu "' + filename + '"?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Xóa',
+        cancelButtonText: 'Hủy',
+        confirmButtonColor: '#dc3545'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/noi-dung/upload-tai-lieu.php?action=delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'id=' + id + '&csrf_token=' + document.querySelector('input[name="csrf_token"]').value
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    toastr.success('Xóa tài liệu thành công');
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    toastr.error(data.message || 'Có lỗi xảy ra');
+                }
+            })
+            .catch(error => {
+                toastr.error('Lỗi kết nối');
             });
         }
     });

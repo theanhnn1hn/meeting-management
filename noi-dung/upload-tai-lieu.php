@@ -10,6 +10,68 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// Xác định action
+$action = $_GET['action'] ?? 'upload';
+
+if ($action === 'delete') {
+    // XÓA TÀI LIỆU
+    $tai_lieu_id = (int)($_POST['id'] ?? 0);
+    $csrf_token = $_POST['csrf_token'] ?? '';
+
+    if (!verify_csrf_token($csrf_token)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid CSRF token']);
+        exit;
+    }
+
+    try {
+        if ($tai_lieu_id <= 0) {
+            throw new Exception('ID tài liệu không hợp lệ');
+        }
+
+        // Lấy thông tin tài liệu
+        $stmt = $pdo->prepare("
+            SELECT tl.*, nd.nguoi_trinh_id
+            FROM tai_lieu tl
+            JOIN noi_dung nd ON tl.noi_dung_id = nd.id
+            WHERE tl.id = ?
+        ");
+        $stmt->execute([$tai_lieu_id]);
+        $tai_lieu = $stmt->fetch();
+
+        if (!$tai_lieu) {
+            throw new Exception('Tài liệu không tồn tại');
+        }
+
+        // Kiểm tra quyền: chỉ người trình hoặc lãnh đạo mới được xóa
+        $is_owner = ($tai_lieu['nguoi_trinh_id'] == $_SESSION['user_id']);
+        $is_uploader = ($tai_lieu['uploaded_by'] == $_SESSION['user_id']);
+        $is_leader = in_array($_SESSION['chuc_vu'] ?? '', [ROLE_CHANH_VP, ROLE_PHO_CVP, ROLE_TRUONG_PHONG, ROLE_PHO_PHONG]);
+
+        if (!$is_owner && !$is_uploader && !$is_leader) {
+            throw new Exception('Bạn không có quyền xóa tài liệu này');
+        }
+
+        // Xóa file vật lý
+        $file_path = __DIR__ . '/../' . $tai_lieu['duong_dan'];
+        if (file_exists($file_path)) {
+            unlink($file_path);
+        }
+
+        // Xóa khỏi database
+        $stmt = $pdo->prepare("DELETE FROM tai_lieu WHERE id = ?");
+        $stmt->execute([$tai_lieu_id]);
+
+        log_activity('Xóa tài liệu', 'tai_lieu', $tai_lieu_id, $tai_lieu['ten_file']);
+
+        echo json_encode(['success' => true, 'message' => 'Xóa tài liệu thành công']);
+
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// UPLOAD TÀI LIỆU (action mặc định)
 // Verify CSRF
 $csrf_token = $_POST['csrf_token'] ?? '';
 if (!verify_csrf_token($csrf_token)) {

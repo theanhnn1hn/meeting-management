@@ -6,7 +6,7 @@ require_once __DIR__ . '/../auth/check_auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 $page_title = 'Danh sách Nội dung';
-$current_user = get_current_user();
+$current_user = get_auth_user();
 
 // Filter
 $filter_ky_hop = $_GET['ky_hop_id'] ?? '';
@@ -71,7 +71,7 @@ $ky_hop_list = $pdo->query("SELECT id, ten_ky_hop, so_ky_hop FROM ky_hop ORDER B
 // Lấy danh sách phòng ban cho filter (nếu có quyền)
 $phong_ban_list = [];
 if (has_permission('view_all')) {
-    $phong_ban_list = get_all_phong_ban();
+    $phong_ban_list = $pdo->query("SELECT id, ten_phong FROM phong_ban WHERE trang_thai = 1 ORDER BY ten_phong")->fetchAll();
 }
 
 include __DIR__ . '/../includes/header.php';
@@ -83,7 +83,7 @@ include __DIR__ . '/../includes/header.php';
         <p class="text-muted">Quản lý nội dung kỳ họp</p>
     </div>
     <div class="col-md-4 text-end">
-        <?php if ($_SESSION['chuc_vu'] === ROLE_CHUYEN_VIEN): ?>
+        <?php if (has_permission('dang_ky_noi_dung')): ?>
             <a href="dang-ky.php" class="btn btn-primary">
                 <i class="bi bi-plus-lg"></i> Đăng ký nội dung
             </a>
@@ -159,6 +159,17 @@ include __DIR__ . '/../includes/header.php';
                     </tr>
                 </thead>
                 <tbody>
+                    <?php if (empty($noi_dung_list)): ?>
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox display-1"></i>
+                                <h5 class="mt-3">Không có nội dung nào</h5>
+                                <?php if (has_permission('dang_ky_noi_dung')): ?>
+                                    <p>Bạn chưa đăng ký nội dung nào. <a href="dang-ky.php">Đăng ký ngay</a></p>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
                     <?php foreach ($noi_dung_list as $nd): ?>
                         <tr>
                             <td>
@@ -228,6 +239,7 @@ include __DIR__ . '/../includes/header.php';
 $extra_js = <<<JS
 <script>
 $(document).ready(function() {
+    <?php if (!empty($noi_dung_list)): ?>
     $('#noiDungTable').DataTable({
         order: [[0, 'asc']],
         pageLength: 20,
@@ -246,6 +258,7 @@ $(document).ready(function() {
             }
         ]
     });
+    <?php endif; ?>
 });
 </script>
 JS;

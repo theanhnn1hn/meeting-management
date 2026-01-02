@@ -1,10 +1,7 @@
 <?php
-session_start();
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../includes/functions.php';
-
-check_login();
-check_role(['chanh_van_phong', 'pho_chanh_van_phong', 'lanh_dao_tinh']);
+require_once __DIR__ . '/../auth/check_auth.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_role([ROLE_CHANH_VP, ROLE_PHO_CVP]);
 
 $from_date = $_GET['from_date'] ?? date('Y-m-01');
 $to_date = $_GET['to_date'] ?? date('Y-m-d');
@@ -47,12 +44,12 @@ $stats = $stmt->fetch();
 
 // Get doc viec list
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         c.*,
-        nd.ten_noi_dung,
+        nd.tieu_de,
         u_from.ho_ten as nguoi_doc_viec,
         u_to.ho_ten as nguoi_thuc_hien,
-        pb.ten_phong_ban,
+        pb.ten_phong,
         kh.ten_ky_hop
     FROM comments c
     JOIN noi_dung nd ON c.noi_dung_id = nd.id
@@ -68,8 +65,8 @@ $doc_viec_list = $stmt->fetchAll();
 
 // By phong ban
 $stmt = $pdo->prepare("
-    SELECT 
-        pb.ten_phong_ban,
+    SELECT
+        pb.ten_phong,
         COUNT(c.id) as tong_doc_viec,
         SUM(CASE WHEN c.trang_thai = 'chua_xu_ly' THEN 1 ELSE 0 END) as chua_xu_ly,
         SUM(CASE WHEN c.trang_thai = 'da_hoan_thanh' THEN 1 ELSE 0 END) as da_hoan_thanh

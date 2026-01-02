@@ -3,7 +3,7 @@ require_once __DIR__ . '/../auth/check_auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
 $page_title = 'Hồ sơ cá nhân';
-$current_user = get_current_user();
+$current_user = get_auth_user();
 $error = '';
 $success = '';
 
@@ -41,9 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['ho_ten'] = $ho_ten;
                     
                     log_activity('Cập nhật hồ sơ', 'users', $_SESSION['user_id']);
-                    
+
                     $success = 'Cập nhật thông tin thành công';
-                    $current_user = get_current_user(); // Reload
+                    $current_user = get_auth_user(); // Reload
                 }
             } catch (PDOException $e) {
                 $error = 'Lỗi cập nhật: ' . $e->getMessage();

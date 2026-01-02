@@ -1,10 +1,7 @@
 <?php
-session_start();
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../includes/functions.php';
-
-check_login();
-check_role(['chanh_van_phong', 'pho_chanh_van_phong', 'lanh_dao_tinh']);
+require_once __DIR__ . '/../auth/check_auth.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_role([ROLE_CHANH_VP, ROLE_PHO_CVP]);
 
 $from_date = $_GET['from_date'] ?? date('Y-m-01');
 $to_date = $_GET['to_date'] ?? date('Y-m-d');
@@ -12,7 +9,7 @@ $phong_ban_id = isset($_GET['phong_ban_id']) ? (int)$_GET['phong_ban_id'] : 0;
 $export = isset($_GET['export']) && $_GET['export'] == 'excel';
 
 // Get phong ban list
-$stmt = $pdo->query("SELECT id, ten_phong_ban FROM phong_ban ORDER BY ten_phong_ban");
+$stmt = $pdo->query("SELECT id, ten_phong FROM phong_ban ORDER BY ten_phong");
 $phong_ban_list = $stmt->fetchAll();
 
 // Build where
@@ -28,24 +25,24 @@ $where_sql = implode(' AND ', $where);
 
 // Get user performance
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         u.id,
         u.ho_ten,
         u.email,
-        pb.ten_phong_ban,
+        pb.ten_phong,
         COUNT(DISTINCT nd.id) as tong_noi_dung,
         AVG(nd.tien_do) as tien_do_tb,
-        SUM(CASE WHEN nd.trang_thai_duyet = 'lanh_dao_duyet' THEN 1 ELSE 0 END) as da_duyet,
-        SUM(CASE WHEN nd.trang_thai_duyet = 'tu_choi' THEN 1 ELSE 0 END) as tu_choi,
+        SUM(CASE WHEN nd.trang_thai = 'da_duyet' THEN 1 ELSE 0 END) as da_duyet,
+        SUM(CASE WHEN nd.trang_thai = 'tu_choi' THEN 1 ELSE 0 END) as tu_choi,
         COUNT(DISTINCT CASE WHEN nd.deadline < NOW() AND nd.tien_do < 100 THEN nd.id END) as qua_han,
-        (SELECT COUNT(*) FROM comments c 
-         JOIN noi_dung nd2 ON c.noi_dung_id = nd2.id 
-         WHERE c.loai = 'doc_viec' AND nd2.nguoi_trinh_id = u.id 
+        (SELECT COUNT(*) FROM comments c
+         JOIN noi_dung nd2 ON c.noi_dung_id = nd2.id
+         WHERE c.loai = 'doc_viec' AND nd2.nguoi_trinh_id = u.id
          AND c.created_at BETWEEN ? AND ?) as so_lan_doc_viec,
-        (SELECT AVG(TIMESTAMPDIFF(DAY, nd3.created_at, nd3.updated_at)) 
-         FROM noi_dung nd3 
-         WHERE nd3.nguoi_trinh_id = u.id 
-         AND nd3.trang_thai_duyet = 'lanh_dao_duyet'
+        (SELECT AVG(TIMESTAMPDIFF(DAY, nd3.created_at, nd3.updated_at))
+         FROM noi_dung nd3
+         WHERE nd3.nguoi_trinh_id = u.id
+         AND nd3.trang_thai = 'da_duyet'
          AND nd3.created_at BETWEEN ? AND ?) as thoi_gian_hoan_thanh_tb
     FROM users u
     JOIN phong_ban pb ON u.phong_ban_id = pb.id

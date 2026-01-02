@@ -16,10 +16,9 @@ if (!$id) {
 
 // Get notification
 $stmt = $pdo->prepare("
-    SELECT tb.*, u.ho_ten as nguoi_gui_ten, u.email as nguoi_gui_email
+    SELECT tb.*
     FROM thong_bao tb
-    LEFT JOIN users u ON tb.nguoi_gui_id = u.id
-    WHERE tb.id = ? AND tb.nguoi_nhan_id = ?
+    WHERE tb.id = ? AND tb.user_id = ?
 ");
 $stmt->execute([$id, $user_id]);
 $notif = $stmt->fetch();
@@ -142,8 +141,8 @@ include __DIR__ . '/../../includes/header.php';
             $stmt = $pdo->prepare("
                 SELECT id, tieu_de, created_at, da_doc
                 FROM thong_bao
-                WHERE nguoi_nhan_id = ? 
-                AND id != ? 
+                WHERE user_id = ?
+                AND id != ?
                 AND loai = ?
                 ORDER BY created_at DESC
                 LIMIT 5
@@ -170,7 +169,7 @@ include __DIR__ . '/../../includes/header.php';
                                             <?php echo htmlspecialchars($rel['tieu_de']); ?>
                                         </div>
                                         <small class="text-muted">
-                                            <?php echo time_elapsed_string($rel['created_at']); ?>
+                                            <?php echo time_ago($rel['created_at']); ?>
                                         </small>
                                     </div>
                                 </a>
@@ -191,21 +190,21 @@ include __DIR__ . '/../../includes/header.php';
                     <?php
                     // Get stats
                     $stmt = $pdo->prepare("
-                        SELECT 
+                        SELECT
                             COUNT(*) as total,
                             SUM(CASE WHEN da_doc = 0 THEN 1 ELSE 0 END) as unread,
                             SUM(CASE WHEN da_doc = 1 THEN 1 ELSE 0 END) as read
                         FROM thong_bao
-                        WHERE nguoi_nhan_id = ?
+                        WHERE user_id = ?
                     ");
                     $stmt->execute([$user_id]);
                     $stats = $stmt->fetch();
-                    
+
                     // Stats by type
                     $stmt = $pdo->prepare("
                         SELECT loai, COUNT(*) as count
                         FROM thong_bao
-                        WHERE nguoi_nhan_id = ?
+                        WHERE user_id = ?
                         GROUP BY loai
                         ORDER BY count DESC
                     ");
